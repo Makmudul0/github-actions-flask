@@ -20,7 +20,7 @@ def home():
         return f"Connected to PostgreSQL: {db_version}"
     except Exception as e:
         return f"Database connection error: {e}"
-    
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
