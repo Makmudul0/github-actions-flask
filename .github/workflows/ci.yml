@@ -43,8 +43,14 @@ jobs:
           pip install flake8
           flake8 app --max-line-length=120
 
-      - name: Docker Compose Up (Test Container Build)
+      - name: Docker Compose Up and Test Endpoint
         run: |
           docker-compose up --build -d
-          sleep 10
-          docker-compose logs web
+          echo "⏳ Waiting for Flask app to be ready..."
+          sleep 15
+
+          echo "🌐 Curling the Flask endpoint..."
+          curl -v --retry 5 --retry-delay 5 http://localhost:5000
+
+          echo "🧪 Checking response contains PostgreSQL"
+          curl -s http://localhost:5000 | grep "PostgreSQL"
