@@ -21,23 +21,25 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
+      - name: Debug secret presence
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then echo "❌ DOCKER_USERNAME is missing"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_TOKEN }}" ]; then echo "❌ DOCKER_TOKEN is missing"; exit 1; fi
+          echo "✅ Secrets found"
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/github-actions-flask:latest .
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/github-actions-flask:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/github-actions-flask:latest
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/github-actions-flask:latest
-
-      - name: Build and run with Docker Compose
-        run: docker-compose up --build -d
-
-      - name: Wait for app to be ready
-        run: sleep 10
-
-      - name: Test app with curl
-        run: curl http://localhost:5000
+      - name: Run with Docker Compose
+        run: |
+          docker-compose up --build -d
+          sleep 10
+          curl http://localhost:5000
